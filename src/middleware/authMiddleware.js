@@ -23,6 +23,7 @@ module.exports = (req, res, next) => {
     // 3. Valida o token
     const verificado = jwt.verify(token, process.env.JWT_SECRET);
     req.usuarioLogado = verificado;
+    req.usuarioId = verificado.id_usuario;
 
     next(); 
   } catch (error) {

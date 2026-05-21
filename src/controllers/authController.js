@@ -15,9 +15,16 @@ const authController = {
       const salt = await bcrypt.genSalt(10);
       const senhaCriptografada = await bcrypt.hash(senha, salt);
 
-      await UsuarioModel.criar(nome, email, senhaCriptografada);
+      const idUsuario = await UsuarioModel.criar(nome, email, senhaCriptografada);
 
-      return res.status(201).json({ message: 'Usuário cadastrado com sucesso!' });
+      const todasAcoes = await UsuarioModel.listarTodasAcoes();
+      const acoesIniciais = UsuarioModel.sortearAcoes(todasAcoes, 10);
+      await UsuarioModel.adicionarAcoesFavoritas(idUsuario, acoesIniciais);
+
+      return res.status(201).json({
+        message: 'Usuário cadastrado com sucesso!',
+        acoesIniciais,
+      });
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
         return res.status(400).json({ error: 'Este e-mail já está cadastrado.' });
