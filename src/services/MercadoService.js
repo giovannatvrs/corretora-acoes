@@ -2,7 +2,7 @@
 const axios = require('axios');
 
 const mercadoService = {
-  
+
   obterPrecosFechamento: async () => {
     const res = await axios.get('https://raw.githubusercontent.com/marciobarros/dsw-simulador-corretora/refs/heads/main/tickers.json');
     return res.data;
@@ -32,6 +32,17 @@ const mercadoService = {
       };
     }).filter(Boolean);
   },
+
+  retornarPrecoAtualAcao: async (codigo, minuto) => {
+      precosMinuto = await mercadoService.obterPrecosMinuto(minuto);
+
+      const acao = precosMinuto.find(c => c.ticker === codigo);
+      if (!acao) return null;
+
+      const precoAtual = acao.preco;
+
+      return precoAtual;
+  }
 
 };
 
