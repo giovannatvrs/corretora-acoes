@@ -1,4 +1,6 @@
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 const authController = require('./controllers/AuthController');
 const protegerRota = require('./middleware/authMiddleware');
 const mercadoRoutes = require('./routes/mercadoRoutes');
@@ -7,6 +9,12 @@ const carteiraRoutes = require('./routes/carteiraRoutes');
 
 const app = express();
 app.use(express.json());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 app.use('/mercado', mercadoRoutes);
 app.use('/ordem', ordemRoutes);
