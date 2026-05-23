@@ -28,6 +28,18 @@ const CarteiraAcaoModel = {
       'UPDATE carteira_acao SET quantidade = ?, preco_medio = ? WHERE id_carteira = ? AND cod_acao = ?';
     await executor.execute(query, [quantidade, preco_medio, id_carteira, cod_acao]);
   },
+
+  listarPosicoes: async (id_carteira, connection = null) => {
+    const executor = connection || db;
+    const query =
+      'SELECT cod_acao, quantidade, preco_medio FROM carteira_acao WHERE id_carteira = ? AND quantidade > 0 ORDER BY cod_acao';
+    const [rows] = await executor.execute(query, [id_carteira]);
+    return rows.map((row) => ({
+      cod_acao: row.cod_acao,
+      quantidade: Number(row.quantidade),
+      preco_medio: Number(row.preco_medio),
+    }));
+  },
 };
 
 module.exports = CarteiraAcaoModel;

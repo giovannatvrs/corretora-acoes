@@ -3,13 +3,14 @@ const authController = require('./controllers/AuthController');
 const protegerRota = require('./middleware/authMiddleware');
 const mercadoRoutes = require('./routes/mercadoRoutes');
 const ordemRoutes = require('./routes/ordemRoutes');
-const mercadoController = require('./controllers/MercadoController');
+const carteiraRoutes = require('./routes/carteiraRoutes');
 
 const app = express();
 app.use(express.json());
 
 app.use('/mercado', mercadoRoutes);
 app.use('/ordem', ordemRoutes);
+app.use('/carteira', carteiraRoutes);
 
 app.post('/auth/register', authController.register);
 app.post('/auth/login', authController.login);
