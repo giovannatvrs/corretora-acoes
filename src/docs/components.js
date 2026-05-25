@@ -206,8 +206,6 @@
  *       properties:
  *         id_ordem:
  *           type: integer
- *         id_usuario:
- *           type: integer
  *         cod_acao:
  *           type: string
  *         preco_execucao:
@@ -235,8 +233,6 @@
  *       properties:
  *         id_ordem:
  *           type: integer
- *         id_usuario:
- *           type: integer
  *         cod_acao:
  *           type: string
  *         preco_ordem:
@@ -256,6 +252,31 @@
  *           type: string
  *           format: time
  *           nullable: true
+ *
+ *     OrdemCancelada:
+ *       type: object
+ *       properties:
+ *         id_ordem:
+ *           type: integer
+ *         cod_acao:
+ *           type: string
+ *         preco_ordem:
+ *           type: number
+ *         quantidade:
+ *           type: integer
+ *         tipo_ordem:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [CANCELADA]
+ *         hora_lancamento:
+ *           type: string
+ *           format: time
+ *           example: '14:05'
+ *         hora_execucao:
+ *           type: string
+ *           format: time
+ *           example: '14:12'
  *
  *     PosicaoCarteira:
  *       allOf:

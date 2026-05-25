@@ -352,6 +352,47 @@ const OrdemService = {
       }
     }
   },
+
+  listarOrdensUsuario: async (idUsuario) => {
+    if (!idUsuario) {
+      throw new Error('ID do usuário é inválido ou não foi fornecido.');
+    }
+
+    const ordens = await OrdemModel.buscarOrdensPorUsuario(idUsuario);
+    return ordens.map(({ id_usuario, ...ordem }) => ordem);
+  },
+
+  cancelarOrdemPendente: async (idUsuario, idOrdem, horaExecucao) => {
+    if (!idUsuario) {
+      throw new Error('ID do usuário é inválido ou não foi fornecido.');
+    }
+
+    if (!idOrdem) {
+      throw new Error('ID da ordem é inválido ou não foi fornecido.');
+    }
+
+    if (!horaExecucao) {
+      throw new Error('hora_execucao é obrigatória para cancelar a ordem.');
+    }
+
+    const ordem = await OrdemModel.buscarOrdemPendenteUsuario(idOrdem, idUsuario);
+    if (!ordem) {
+      return null;
+    }
+
+    await OrdemModel.atualizarStatusOrdem(idOrdem, 'CANCELADA', horaExecucao);
+
+    return {
+      id_ordem: ordem.id_ordem,
+      cod_acao: ordem.cod_acao,
+      preco_ordem: ordem.preco_ordem,
+      quantidade: ordem.quantidade,
+      tipo_ordem: ordem.tipo_ordem,
+      status: 'CANCELADA',
+      hora_lancamento: ordem.hora_lancamento,
+      hora_execucao: horaExecucao,
+    };
+  },
 };
 
 module.exports = OrdemService;

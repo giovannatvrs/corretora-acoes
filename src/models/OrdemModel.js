@@ -47,6 +47,18 @@ const OrdemModel = {
     const [rows] = await db.execute(query, [status]);
     return rows;
   },
+
+  buscarOrdensPorUsuario: async (id_usuario) => {
+    const query = 'SELECT * FROM ordens WHERE id_usuario = ? ORDER BY id_ordem DESC';
+    const [rows] = await db.execute(query, [id_usuario]);
+    return rows;
+  },
+
+  buscarOrdemPendenteUsuario: async (id_ordem, id_usuario) => {
+    const query = 'SELECT * FROM ordens WHERE id_ordem = ? AND id_usuario = ? AND status = ?';
+    const [rows] = await db.execute(query, [id_ordem, id_usuario, 'PENDENTE']);
+    return rows[0] || null;
+  },
 };
 
 module.exports = OrdemModel;
