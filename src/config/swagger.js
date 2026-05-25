@@ -15,7 +15,16 @@ const options = {
         'Rotas protegidas exigem JWT obtido em `POST /auth/login`. ' +
         'Use o botão **Authorize** com o valor `Bearer <seu_token>`.',
     },
-    servers: [{ url: `http://localhost:${port}`, description: 'Servidor local' }],
+    servers: [
+      {
+        url: `http://localhost:${port}`,
+        description: 'Servidor local'
+      },
+      {
+        url: 'https://corretora-acoes.onrender.com',
+        description: 'Servidor de Produção (Render)'
+      }
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
