@@ -9,11 +9,13 @@ const OrdemModel = {
     tipo_ordem,
     quantidade,
     status,
+    hora_lancamento,
+    hora_execucao,
     connection = null
   ) => {
     const executor = connection || db;
     const query =
-      'INSERT INTO ordens (id_usuario, cod_acao, preco_ordem, tipo_transacao, tipo_ordem, quantidade, status) VALUES (?, ?, ?, ?, ?, ?, ?)';
+      'INSERT INTO ordens (id_usuario, cod_acao, preco_ordem, tipo_transacao, tipo_ordem, quantidade, status, hora_lancamento, hora_execucao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
     const [result] = await executor.execute(query, [
       id_usuario,
       cod_acao,
@@ -22,14 +24,21 @@ const OrdemModel = {
       tipo_ordem,
       quantidade,
       status,
+      hora_lancamento,
+      hora_execucao,
     ]);
     return result.insertId;
   },
 
-  atualizarStatusOrdem: async (id_ordem, status, connection = null) => {
+  atualizarStatusOrdem: async (id_ordem, status, hora_execucao, connection = null) => {
     const executor = connection || db;
-    const query = 'UPDATE ordens SET status = ? WHERE id_ordem = ?';
-    await executor.execute(query, [status, id_ordem]);
+    if (!hora_execucao) {
+      throw new Error('hora_execucao é obrigatória para atualizar status da ordem.');
+    }
+
+    const query = 'UPDATE ordens SET status = ?, hora_execucao = ? WHERE id_ordem = ?';
+    await executor.execute(query, [status, hora_execucao, id_ordem]);
+  
     return true;
   },
 
@@ -37,6 +46,18 @@ const OrdemModel = {
     const query = 'SELECT * FROM ordens WHERE status = ?';
     const [rows] = await db.execute(query, [status]);
     return rows;
+  },
+
+  buscarOrdensPorUsuario: async (id_usuario) => {
+    const query = 'SELECT * FROM ordens WHERE id_usuario = ? ORDER BY id_ordem DESC';
+    const [rows] = await db.execute(query, [id_usuario]);
+    return rows;
+  },
+
+  buscarOrdemPendenteUsuario: async (id_ordem, id_usuario) => {
+    const query = 'SELECT * FROM ordens WHERE id_ordem = ? AND id_usuario = ? AND status = ?';
+    const [rows] = await db.execute(query, [id_ordem, id_usuario, 'PENDENTE']);
+    return rows[0] || null;
   },
 };
 

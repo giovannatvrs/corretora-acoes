@@ -15,6 +15,8 @@ const OrdemService = {
     precoExecucao,
     tipoOrdem,
     idOrdemExistente = null,
+    horaLancamento,
+    horaExecucao,
   }) => {
     const codigo = normalizarCodigo(codAcao);
     const preco = Number(precoExecucao);
@@ -38,13 +40,21 @@ const OrdemService = {
           tipoOrdem,
           qtd,
           'EXECUTADA',
+          horaLancamento,
+          horaExecucao,
           connection
         );
       } else {
-        await OrdemModel.atualizarStatusOrdem(idOrdem, 'EXECUTADA', connection);
+        await OrdemModel.atualizarStatusOrdem(idOrdem, 'EXECUTADA', horaExecucao, connection);
       }
 
-      await ContaCorrenteService.registrarRetirada(idUsuario, valorTotal, historico, connection);
+      await ContaCorrenteService.registrarRetirada(
+        idUsuario,
+        valorTotal,
+        historico,
+        horaExecucao,
+        connection
+      );
       await CarteiraService.adicionarAcaoComprada(
         idUsuario,
         codigo,
@@ -64,6 +74,8 @@ const OrdemService = {
         quantidade: qtd,
         tipo_ordem: tipoOrdem,
         status: 'EXECUTADA',
+        hora_lancamento: horaLancamento,
+        hora_execucao: horaExecucao,
       };
     } catch (error) {
       await connection.rollback();
@@ -79,7 +91,8 @@ const OrdemService = {
     quantidade,
     tipoOrdem,
     precoOrdem,
-    precoAtualMercado = null
+    precoAtualMercado = null,
+    horaSistema
   ) => {
     const codAcao = normalizarCodigo(codigo);
 
@@ -90,6 +103,8 @@ const OrdemService = {
         quantidade,
         precoExecucao: precoOrdem,
         tipoOrdem,
+        horaLancamento: horaSistema,
+        horaExecucao: horaSistema,
       });
     }
 
@@ -103,6 +118,8 @@ const OrdemService = {
           quantidade,
           precoExecucao: precoAtual,
           tipoOrdem,
+          horaLancamento: horaSistema,
+          horaExecucao: horaSistema,
         });
       }
 
@@ -113,7 +130,9 @@ const OrdemService = {
         'COMPRA',
         tipoOrdem,
         quantidade,
-        'PENDENTE'
+        'PENDENTE',
+        horaSistema,
+        null
       );
 
       return {
@@ -124,6 +143,8 @@ const OrdemService = {
         quantidade,
         tipo_ordem: tipoOrdem,
         status: 'PENDENTE',
+        hora_lancamento: horaSistema,
+        hora_execucao: null,
       };
     }
 
@@ -137,6 +158,8 @@ const OrdemService = {
     precoExecucao,
     tipoOrdem,
     idOrdemExistente = null,
+    horaLancamento,
+    horaExecucao,
   }) => {
     const codigo = normalizarCodigo(codAcao);
     const preco = Number(precoExecucao);
@@ -160,13 +183,21 @@ const OrdemService = {
           tipoOrdem,
           qtd,
           'EXECUTADA',
+          horaLancamento,
+          horaExecucao,
           connection
         );
       } else {
-        await OrdemModel.atualizarStatusOrdem(idOrdem, 'EXECUTADA', connection);
+        await OrdemModel.atualizarStatusOrdem(idOrdem, 'EXECUTADA', horaExecucao, connection);
       }
 
-      await ContaCorrenteService.registrarDeposito(idUsuario, valorTotal, historico, connection);
+      await ContaCorrenteService.registrarDeposito(
+        idUsuario,
+        valorTotal,
+        historico,
+        horaExecucao,
+        connection
+      );
       await CarteiraService.removerAcaoVendida(
         idUsuario,
         codigo,
@@ -185,6 +216,8 @@ const OrdemService = {
         quantidade: qtd,
         tipo_ordem: tipoOrdem,
         status: 'EXECUTADA',
+        hora_lancamento: horaLancamento,
+        hora_execucao: horaExecucao,
       };
     } catch (error) {
       await connection.rollback();
@@ -200,7 +233,8 @@ const OrdemService = {
     quantidade,
     tipoOrdem,
     precoOrdem,
-    precoAtualMercado = null
+    precoAtualMercado = null,
+    horaSistema
   ) => {
     const codAcao = normalizarCodigo(codigo);
 
@@ -219,6 +253,8 @@ const OrdemService = {
         quantidade,
         precoExecucao: precoOrdem,
         tipoOrdem,
+        horaLancamento: horaSistema,
+        horaExecucao: horaSistema,
       });
     }
 
@@ -233,6 +269,8 @@ const OrdemService = {
           quantidade,
           precoExecucao: precoAtual,
           tipoOrdem,
+          horaLancamento: horaSistema,
+          horaExecucao: horaSistema,
         });
       }
 
@@ -244,7 +282,9 @@ const OrdemService = {
         'VENDA',
         tipoOrdem,
         quantidade,
-        'PENDENTE'
+        'PENDENTE',
+        horaSistema,
+        null
       );
 
       return {
@@ -255,13 +295,15 @@ const OrdemService = {
         quantidade,
         tipo_ordem: tipoOrdem,
         status: 'PENDENTE',
+        hora_lancamento: horaSistema,
+        hora_execucao: null,
       };
     }
 
     throw new Error('Tipo de ordem inválido. Use MERCADO ou PROGRAMADA.');
   },
 
-  processarOrdensPendentes: async (precosMinuto) => {
+  processarOrdensPendentes: async (precosMinuto, horaExecucao) => {
     const ordens = await OrdemModel.buscarOrdensPorStatus('PENDENTE');
 
     for (const ordem of ordens) {
@@ -280,6 +322,7 @@ const OrdemService = {
             precoExecucao: acao.preco,
             tipoOrdem: ordem.tipo_ordem,
             idOrdemExistente: ordem.id_ordem,
+            horaExecucao,
           });
         } else if (ordem.tipo_transacao === 'VENDA') {
           // Venda programada: executa se o preço de mercado subir ou igualar ao preço solicitado pelo usuário
@@ -292,6 +335,7 @@ const OrdemService = {
             precoExecucao: acao.preco,
             tipoOrdem: ordem.tipo_ordem,
             idOrdemExistente: ordem.id_ordem,
+            horaExecucao,
           });
         }
       } catch (error) {
@@ -300,13 +344,54 @@ const OrdemService = {
           error instanceof QuantidadeInsuficienteError ||
           error.name === 'QuantidadeInsuficienteError'
         ) {
-          await OrdemModel.atualizarStatusOrdem(ordem.id_ordem, 'CANCELADA');
+          await OrdemModel.atualizarStatusOrdem(ordem.id_ordem, 'CANCELADA', horaExecucao);
           continue;
         }
 
         console.error(`Erro ao processar ordem ${ordem.id_ordem}:`, error);
       }
     }
+  },
+
+  listarOrdensUsuario: async (idUsuario) => {
+    if (!idUsuario) {
+      throw new Error('ID do usuário é inválido ou não foi fornecido.');
+    }
+
+    const ordens = await OrdemModel.buscarOrdensPorUsuario(idUsuario);
+    return ordens.map(({ id_usuario, ...ordem }) => ordem);
+  },
+
+  cancelarOrdemPendente: async (idUsuario, idOrdem, horaExecucao) => {
+    if (!idUsuario) {
+      throw new Error('ID do usuário é inválido ou não foi fornecido.');
+    }
+
+    if (!idOrdem) {
+      throw new Error('ID da ordem é inválido ou não foi fornecido.');
+    }
+
+    if (!horaExecucao) {
+      throw new Error('hora_execucao é obrigatória para cancelar a ordem.');
+    }
+
+    const ordem = await OrdemModel.buscarOrdemPendenteUsuario(idOrdem, idUsuario);
+    if (!ordem) {
+      return null;
+    }
+
+    await OrdemModel.atualizarStatusOrdem(idOrdem, 'CANCELADA', horaExecucao);
+
+    return {
+      id_ordem: ordem.id_ordem,
+      cod_acao: ordem.cod_acao,
+      preco_ordem: ordem.preco_ordem,
+      quantidade: ordem.quantidade,
+      tipo_ordem: ordem.tipo_ordem,
+      status: 'CANCELADA',
+      hora_lancamento: ordem.hora_lancamento,
+      hora_execucao: horaExecucao,
+    };
   },
 };
 

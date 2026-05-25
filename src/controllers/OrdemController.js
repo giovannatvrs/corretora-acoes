@@ -39,6 +39,7 @@ const OrdemController = {
       const codigoAcao = normalizarCodigo(codigo);
       let precoFinal = precoOrdem;
       const minutosAtuais = MercadoController.obterMinutosAtuais();
+      const horaSistema = `14:${minutosAtuais.toString().padStart(2, '0')}`;
 
       const acaoCadastrada = await AcaoModel.existePorCodigo(codigoAcao);
       if (!acaoCadastrada) {
@@ -72,7 +73,8 @@ const OrdemController = {
         validacaoQtd.valor,
         tipoOrdem,
         precoFinal,
-        precoAtualMercado
+        precoAtualMercado,
+        horaSistema
       );
 
       return res.status(201).json(resultado);
@@ -128,6 +130,7 @@ const OrdemController = {
       const codigoAcao = normalizarCodigo(codigo);
       let precoFinal = precoOrdem;
       const minutosAtuais = MercadoController.obterMinutosAtuais();
+      const horaSistema = `14:${minutosAtuais.toString().padStart(2, '0')}`;
 
       const acaoCadastrada = await AcaoModel.existePorCodigo(codigoAcao);
       if (!acaoCadastrada) {
@@ -161,7 +164,8 @@ const OrdemController = {
         validacaoQtd.valor,
         tipoOrdem,
         precoFinal,
-        precoAtualMercado
+        precoAtualMercado,
+        horaSistema
       );
 
       return res.status(201).json(resultado);
@@ -187,6 +191,49 @@ const OrdemController = {
       }
 
       return res.status(500).json({ error: 'Erro interno ao tentar criar uma ordem de venda.' });
+    }
+  },
+
+  listarOrdensUsuario: async (req, res) => {
+    try {
+      const idUsuario = req.usuarioId;
+      const ordens = await OrdemService.listarOrdensUsuario(idUsuario);
+      return res.status(200).json(ordens);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Erro interno ao listar ordens do usuário.' });
+    }
+  },
+
+  cancelarOrdemPendente: async (req, res) => {
+    try {
+      const idUsuario = req.usuarioId;
+      const { idOrdem } = req.params;
+
+      if (!idOrdem) {
+        return res.status(400).json({ error: 'ID da ordem é obrigatório.' });
+      }
+
+      const minutosAtuais = MercadoController.obterMinutosAtuais();
+      const horaSistema = `14:${minutosAtuais.toString().padStart(2, '0')}`;
+
+      const resultado = await OrdemService.cancelarOrdemPendente(
+        idUsuario,
+        Number(idOrdem),
+        horaSistema
+      );
+
+      if (!resultado) {
+        return res.status(404).json({ error: 'Ordem pendente não encontrada para o usuário.' });
+      }
+
+      return res.status(200).json(resultado);
+    } catch (error) {
+      console.error(error);
+      if (error.message && error.message.includes('ID da ordem')) {
+        return res.status(400).json({ error: error.message });
+      }
+      return res.status(500).json({ error: 'Erro interno ao cancelar ordem pendente.' });
     }
   },
 };

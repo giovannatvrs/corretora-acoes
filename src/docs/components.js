@@ -206,8 +206,6 @@
  *       properties:
  *         id_ordem:
  *           type: integer
- *         id_usuario:
- *           type: integer
  *         cod_acao:
  *           type: string
  *         preco_execucao:
@@ -221,13 +219,19 @@
  *         status:
  *           type: string
  *           enum: [EXECUTADA]
+ *         hora_lancamento:
+ *           type: string
+ *           format: time
+ *           example: '14:05'
+ *         hora_execucao:
+ *           type: string
+ *           format: time
+ *           example: '14:05'
  *
  *     OrdemPendente:
  *       type: object
  *       properties:
  *         id_ordem:
- *           type: integer
- *         id_usuario:
  *           type: integer
  *         cod_acao:
  *           type: string
@@ -240,6 +244,39 @@
  *         status:
  *           type: string
  *           enum: [PENDENTE]
+ *         hora_lancamento:
+ *           type: string
+ *           format: time
+ *           example: '14:05'
+ *         hora_execucao:
+ *           type: string
+ *           format: time
+ *           nullable: true
+ *
+ *     OrdemCancelada:
+ *       type: object
+ *       properties:
+ *         id_ordem:
+ *           type: integer
+ *         cod_acao:
+ *           type: string
+ *         preco_ordem:
+ *           type: number
+ *         quantidade:
+ *           type: integer
+ *         tipo_ordem:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [CANCELADA]
+ *         hora_lancamento:
+ *           type: string
+ *           format: time
+ *           example: '14:05'
+ *         hora_execucao:
+ *           type: string
+ *           format: time
+ *           example: '14:12'
  *
  *     PosicaoCarteira:
  *       allOf:
@@ -265,6 +302,49 @@
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/PosicaoCarteira'
+ *
+ *     ContaCorrenteLancamento:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           nullable: true
+ *         data_hora:
+ *           type: string
+ *           format: time
+ *           example: '14:10'
+ *         descricao:
+ *           type: string
+ *           example: Depósito manual
+ *         tipo:
+ *           type: string
+ *           enum: [deposito, retirada]
+ *         valor:
+ *           type: number
+ *         saldo_resultante:
+ *           type: number
+ *
+ *     ContaCorrenteDepositoRequest:
+ *       type: object
+ *       required: [descricao, valor]
+ *       properties:
+ *         descricao:
+ *           type: string
+ *           example: Depósito manual
+ *         valor:
+ *           type: number
+ *           example: 1000
+ *
+ *     ContaCorrenteRetiradaRequest:
+ *       type: object
+ *       required: [descricao, valor]
+ *       properties:
+ *         descricao:
+ *           type: string
+ *           example: Retirada manual
+ *         valor:
+ *           type: number
+ *           example: 500
  */
 
 module.exports = {};
